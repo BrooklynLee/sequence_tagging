@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 from data_utils import minibatches, pad_sequences, get_chunks
 from general_utils import Progbar, print_sentence
-
+import logging
 
 class NERModel(object):
     def __init__(self, config, embeddings, ntags, nchars=None, logger=None):
@@ -124,11 +124,15 @@ class NERModel(object):
                 char_embeddings = tf.reshape(char_embeddings, shape=[-1, s[-2], self.config.dim_char])
                 word_lengths = tf.reshape(self.word_lengths, shape=[-1])
                 # bi lstm on chars
-                lstm_cell = tf.contrib.rnn.LSTMCell(self.config.char_hidden_size, 
+                lstm_frod_cell = tf.contrib.rnn.LSTMCell(self.config.char_hidden_size,
                                                     state_is_tuple=True)
-                _, ((_, output_fw), (_, output_bw)) = tf.nn.bidirectional_dynamic_rnn(lstm_cell, 
-                    lstm_cell, char_embeddings, sequence_length=word_lengths, 
-                    dtype=tf.float32)
+                lstm_back_cell = tf.contrib.rnn.LSTMCell(self.config.char_hidden_size,
+                                                    state_is_tuple=True)
+                _, ((_, output_fw), (_, output_bw)) = tf.nn.bidirectional_dynamic_rnn(lstm_frod_cell,
+                                                                                      lstm_back_cell,
+                                                                                      char_embeddings,
+                                                                                      sequence_length=word_lengths,
+                                                                                      dtype=tf.float32)
                 output = tf.concat([output_fw, output_bw], axis=-1)
                 # shape = (batch size, max sentence length, char hidden size)
                 output = tf.reshape(output, shape=[-1, s[1], 2*self.config.char_hidden_size])
@@ -143,10 +147,13 @@ class NERModel(object):
         Adds logits to self
         """
         with tf.variable_scope("bi-lstm"):
-            lstm_cell = tf.contrib.rnn.LSTMCell(self.config.hidden_size)
-            (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(lstm_cell, 
-                lstm_cell, self.word_embeddings, sequence_length=self.sequence_lengths, 
-                dtype=tf.float32)
+            lstm_fwrd_cell = tf.contrib.rnn.LSTMCell(self.config.hidden_size)
+            lstm_back_cell = tf.contrib.rnn.LSTMCell(self.config.hidden_size)
+            (output_fw, output_bw), _ = tf.nn.bidirectional_dynamic_rnn(lstm_fwrd_cell,
+                                                                        lstm_back_cell,
+                                                                        self.word_embeddings,
+                                                                        sequence_length=self.sequence_lengths,
+                                                                        dtype=tf.float32)
             output = tf.concat([output_fw, output_bw], axis=-1)
             output = tf.nn.dropout(output, self.dropout)
 
@@ -286,27 +293,30 @@ class NERModel(object):
             accuracy
             f1 score
         """
-        accs = []
-        correct_preds, total_correct, total_preds = 0., 0., 0.
-        for words, labels in minibatches(test, self.config.batch_size):
-            labels_pred, sequence_lengths = self.predict_batch(sess, words)
+        try :
+            accs = []
+            correct_preds, total_correct, total_preds = 0., 0., 0.
+            for words, labels in minibatches(test, self.config.batch_size):
+                labels_pred, sequence_lengths = self.predict_batch(sess, words)
 
-            for lab, lab_pred, length in zip(labels, labels_pred, sequence_lengths):
-                lab = lab[:length]
-                lab_pred = lab_pred[:length]
-                accs += map(lambda (a, b): a == b, zip(lab, lab_pred))
+                for lab, lab_pred, length in zip(labels, labels_pred, sequence_lengths):
+                    lab = lab[:length]
+                    lab_pred = lab_pred[:length]
+                    accs += map(lambda x : x[0] == x[1], zip(lab, lab_pred))
 
-                lab_chunks = set(get_chunks(lab, tags))
-                lab_pred_chunks = set(get_chunks(lab_pred, tags))
-                correct_preds += len(lab_chunks & lab_pred_chunks)
-                total_preds += len(lab_pred_chunks)
-                total_correct += len(lab_chunks)
+                    lab_chunks = set(get_chunks(lab, tags))
+                    lab_pred_chunks = set(get_chunks(lab_pred, tags))
+                    correct_preds += len(lab_chunks & lab_pred_chunks)
+                    total_preds += len(lab_pred_chunks)
+                    total_correct += len(lab_chunks)
 
-        p = correct_preds / total_preds if correct_preds > 0 else 0
-        r = correct_preds / total_correct if correct_preds > 0 else 0
-        f1 = 2 * p * r / (p + r) if correct_preds > 0 else 0
-        acc = np.mean(accs)
-        return acc, f1
+            p = correct_preds / total_preds if correct_preds > 0 else 0
+            r = correct_preds / total_correct if correct_preds > 0 else 0
+            f1 = 2 * p * r / (p + r) if correct_preds > 0 else 0
+            acc = np.mean(accs)
+            return acc, f1
+        except Exception as e :
+            raise Exception (e)
 
 
     def train(self, train, dev, tags):
@@ -359,24 +369,19 @@ class NERModel(object):
             self.logger.info("- test acc {:04.2f} - f1 {:04.2f}".format(100*acc, 100*f1))
 
 
-    def interactive_shell(self, tags, processing_word):
-        idx_to_tag = {idx: tag for tag, idx in tags.iteritems()}
+    def predict(self, tags, processing_word, sentence):
+        idx_to_tag = {idx: tag for tag, idx in iter(tags.items())}
         saver = tf.train.Saver()
         with tf.Session() as sess:
             saver.restore(sess, self.config.model_output)
-            self.logger.info("This is an interactive mode, enter a sentence:")
-            while True:
-                try:
-                    sentence = raw_input("input> ")
-                    words_raw = sentence.strip().split(" ")
-                    words = map(processing_word, words_raw)
-                    if type(words[0]) == tuple:
-                        words = zip(*words)
-                    pred_ids, _ = self.predict_batch(sess, [words])
-                    preds = map(lambda idx: idx_to_tag[idx], list(pred_ids[0]))
-                    print_sentence(self.logger, {"x": words_raw, "y": preds})
-                except EOFError:
-                    print("Closing session.")
-                    break
+            words_raw = sentence.strip().split(" ")
+            words = list(map(lambda x : processing_word(x), words_raw))
+            if type(words[0]) == tuple:
+                words = zip(*words)
+            pred_ids, _ = self.predict_batch(sess, [words])
+            preds = list(map(lambda idx: idx_to_tag[idx], list(pred_ids[0])))
+            print(words_raw)
+            print(preds)
+
 
 

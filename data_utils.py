@@ -1,5 +1,7 @@
 import numpy as np
 import os
+import codecs
+from tempfile import TemporaryFile
 
 UNK = "$UNK$"
 NUM = "$NUM$"
@@ -52,7 +54,7 @@ class CoNLLDataset(object):
                         yield words, tags
                         words, tags = [], []
                 else:
-                    word, tag = line.split(' ')
+                    word, _,_, tag = line.split(' ')
                     if self.processing_word is not None:
                         word = self.processing_word(word)
                     if self.processing_tag is not None:
@@ -80,14 +82,14 @@ def get_vocabs(datasets):
     Return:
         a set of all the words in the dataset
     """
-    print "Building vocab..."
+    print ("Building vocab...")
     vocab_words = set()
     vocab_tags = set()
     for dataset in datasets:
         for words, tags in dataset:
             vocab_words.update(words)
             vocab_tags.update(tags)
-    print "- done. {} tokens".format(len(vocab_words))
+    print ("- done. {} tokens".format(len(vocab_words)))
     return vocab_words, vocab_tags
 
 
@@ -111,13 +113,13 @@ def get_glove_vocab(filename):
     Args:
         filename: path to the glove vectors
     """
-    print "Building vocab..."
+    print ("Building vocab...")
     vocab = set()
     with open(filename) as f:
         for line in f:
             word = line.strip().split(' ')[0]
             vocab.add(word)
-    print "- done. {} tokens".format(len(vocab))
+    print ("- done. {} tokens".format(len(vocab)))
     return vocab
 
 
@@ -131,14 +133,14 @@ def write_vocab(vocab, filename):
     Returns:
         write a word per line
     """
-    print "Writing vocab..."
+    print ("Writing vocab...")
     with open(filename, "w") as f:
         for i, word in enumerate(vocab):
             if i != len(vocab) - 1:
                 f.write("{}\n".format(word))
             else:
                 f.write(word)
-    print "- done. {} tokens".format(len(vocab))
+    print ("- done. {} tokens".format(len(vocab)))
 
 
 def load_vocab(filename):
@@ -167,18 +169,23 @@ def export_trimmed_glove_vectors(vocab, glove_filename, trimmed_filename, dim):
         trimmed_filename: a path where to store a matrix in npy
         dim: (int) dimension of embeddings
     """
-    embeddings = np.zeros([len(vocab), dim])
-    with open(glove_filename) as f:
-        for line in f:
-            line = line.strip().split(' ')
-            word = line[0]
-            embedding = map(float, line[1:])
-            if word in vocab:
-                word_idx = vocab[word]
-                embeddings[word_idx] = np.asarray(embedding)
+    try :
+        embeddings = np.zeros([len(vocab), dim])
+        with open(glove_filename) as f:
+            for line in f:
+                line = line.strip().split(' ')
+                word = line[0]
+                if word in vocab:
+                    embedding = list(map(lambda x: float(x), line[1:]))
+                    word_idx = vocab[word]
+                    embeddings[word_idx] = np.asarray(embedding)
 
-    np.savez_compressed(trimmed_filename, embeddings=embeddings)
-
+        np.savetxt(trimmed_filename, embeddings)
+        # np.save(trimmed_filename, embeddings)
+        # np.savez_compressed(trimmed_filename, embeddings=embeddings)
+        #np.savez(trimmed_filename, embeddings=embeddings)
+    except Exception as e :
+        raise Exception (e)
 
 def get_trimmed_glove_vectors(filename):
     """
@@ -188,7 +195,11 @@ def get_trimmed_glove_vectors(filename):
         matrix of embeddings (np array)
     """
     with open(filename) as f:
-        return np.load(f)["embeddings"]
+        return np.loadtxt(f)
+    # with codecs.open(filename, "r", encoding='ASCII', errors='ignore') as f :
+    #     return np.load(f, encoding='ASCII')["embeddings"]
+    # with open(filename + ".npy") as f:
+    #     return np.load(f)["embeddings"]
 
 
 def get_processing_word(vocab_words=None, vocab_chars=None, 
@@ -322,31 +333,35 @@ def get_chunks(seq, tags):
         tags = {"B-PER": 4, "I-PER": 5, "B-LOC": 3}
         result = [("PER", 0, 2), ("LOC", 3, 4)]
     """
-    default = tags[NONE]
-    idx_to_tag = {idx: tag for tag, idx in tags.iteritems()}
-    chunks = []
-    chunk_type, chunk_start = None, None
-    for i, tok in enumerate(seq):
-        # End of a chunk 1
-        if tok == default and chunk_type is not None:
-            # Add a chunk.
-            chunk = (chunk_type, chunk_start, i)
-            chunks.append(chunk)
-            chunk_type, chunk_start = None, None
-
-        # End of a chunk + start of a chunk!
-        elif tok != default:
-            tok_chunk_type = get_chunk_type(tok, idx_to_tag)
-            if chunk_type is None:
-                chunk_type, chunk_start = tok_chunk_type, i
-            elif tok_chunk_type != chunk_type or tok[0] == "B":
+    try :
+        default = tags[NONE]
+        idx_to_tag = {idx: tag for tag, idx in iter(tags.items())}
+        chunks = []
+        chunk_type, chunk_start = None, None
+        for i, tok in enumerate(seq):
+            # End of a chunk 1
+            if tok == default and chunk_type is not None:
+                # Add a chunk.
                 chunk = (chunk_type, chunk_start, i)
                 chunks.append(chunk)
-                chunk_type, chunk_start = tok_chunk_type, i
-        else:
-            pass
-    # end condition
-    if chunk_type is not None:
-        chunk = (chunk_type, chunk_start, len(seq))
-        chunks.append(chunk)
-    return chunks
+                chunk_type, chunk_start = None, None
+
+            # End of a chunk + start of a chunk!
+            elif tok != default:
+                tok_chunk_type = get_chunk_type(tok, idx_to_tag)
+                if chunk_type is None:
+                    chunk_type, chunk_start = tok_chunk_type, i
+                #elif tok_chunk_type != chunk_type or tok[0] == "B":
+                elif tok_chunk_type != chunk_type :
+                    chunk = (chunk_type, chunk_start, i)
+                    chunks.append(chunk)
+                    chunk_type, chunk_start = tok_chunk_type, i
+            else:
+                pass
+        # end condition
+        if chunk_type is not None:
+            chunk = (chunk_type, chunk_start, len(seq))
+            chunks.append(chunk)
+        return chunks
+    except Exception as e :
+        raise Exception (e)
