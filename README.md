@@ -1,3 +1,15 @@
+# BI-LSTM CRF 한글 테스트
+- glove vector lib download needed. 
+- (locate txt file under data/glove.6B/)
+- Data file [link](http://nlp.stanford.edu/data/glove.6B.zip) 
+```
+wget http://nlp.stanford.edu/data/glove.6B.zip
+```
+- step1 : make it work on python3.5 and tf1.1 (done) 
+- step2 : test korean with mecab tockenizer 
+- step3 : develop whole process on hoyai project with rest webservice 
+
+
 # Sequence Tagging with Tensorflow
 
 This repo implements a sequence tagging model using tensorflow.
