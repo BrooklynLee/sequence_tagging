@@ -1,14 +1,12 @@
 class config():
     dim = 300
     dim_char = 100
-    glove_filename = "data/glove.6B/glove.6B.{}d.txt".format(dim)
-    trimmed_filename = "data/glove.6B.{}d.trimmed.npz".format(dim)
-    words_filename = "data/words.txt"
-    tags_filename = "data/tags.txt"
-    chars_filename = "data/chars.txt"
-    dev_filename = "data/coNLL/eng/eng.testa.iob"
-    test_filename = "data/coNLL/eng/eng.testb.iob"
-    train_filename = "data/coNLL/eng/eng.train.iob"
+    words_filename = "../data/words.txt"
+    tags_filename = "../data/tags.txt"
+    chars_filename = "../data/chars.txt"
+    dev_filename = "../data/coNLL/kor/kor.testa.iob"
+    test_filename = "../data/coNLL/kor/kor.testb.iob"
+    train_filename = "../data/coNLL/kor/kor.train.iob"
     max_iter = None
     lowercase = True
     train_embeddings = False

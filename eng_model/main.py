@@ -1,9 +1,11 @@
 import os
-from data_utils import get_trimmed_glove_vectors, load_vocab, \
+
+from eng_model.data_utils import get_trimmed_glove_vectors, load_vocab, \
     get_processing_word, CoNLLDataset
-from general_utils import get_logger
-from model import NERModel
-from config import config
+from eng_model.general_utils import get_logger
+from eng_model.model import NERModel
+
+from eng_model.config import config
 
 try :
     # directory for training outputs
@@ -42,6 +44,8 @@ try :
     # train, evaluate and interact
     model.train(train, dev, vocab_tags)
     model.evaluate(test, vocab_tags)
-    model.predict(vocab_tags, processing_word, "CRICKET-LEICESTERSHIRE TAKE OVER AT TOP AFTER INNINGS VICTORY")
+    model.predict(vocab_tags, processing_word, "Germany 's representative")
+    model.predict(vocab_tags, processing_word, "Germany")
+    model.predict(vocab_tags, processing_word, "Hello Germany 's representative")
 except Exception as e :
     raise Exception (e)

@@ -1,9 +1,11 @@
-import numpy as np
-import os
-import tensorflow as tf
-from data_utils import minibatches, pad_sequences, get_chunks
-from general_utils import Progbar, print_sentence
 import logging
+import os
+
+import numpy as np
+import tensorflow as tf
+from eng_model.data_utils import minibatches, pad_sequences, get_chunks
+from eng_model.general_utils import Progbar
+
 
 class NERModel(object):
     def __init__(self, config, embeddings, ntags, nchars=None, logger=None):
