@@ -2,10 +2,10 @@ class config():
     dim = 300
     dim_char = 100
     glove_filename = "../data/glove.6B/glove.6B.{}d.txt".format(dim)
-    trimmed_filename = "../data/glove.6B.{}d.trimmed.npz".format(dim)
-    words_filename = "../data/words.txt"
-    tags_filename = "../data/tags.txt"
-    chars_filename = "../data/chars.txt"
+    trimmed_filename = "../data/processed/eng/glove.6B.{}d.trimmed.npz".format(dim)
+    words_filename = "../data/processed/eng/words.txt"
+    tags_filename = "../data/processed/eng/tags.txt"
+    chars_filename = "../data/processed/eng/chars.txt"
     dev_filename = "../data/coNLL/eng/eng.testa.iob"
     test_filename = "../data/coNLL/eng/eng.testb.iob"
     train_filename = "../data/coNLL/eng/eng.train.iob"

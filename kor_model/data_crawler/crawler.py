@@ -10,7 +10,7 @@ import pandas as pd
 from io import StringIO
 
 
-def task(page, max_pages, url_path, file_w, reg=None):
+def task(page, max_pages, url_path, file_w, reg=None, url_list=[]):
     """
     문서내의 또다른 Url 을 찾아서 반복 수행 Task
     """
@@ -24,8 +24,9 @@ def task(page, max_pages, url_path, file_w, reg=None):
         page += 1
         for link in soup.find_all('a'):
             href = link.get('href')
-            if (href != None and re.search("https://ko", href)):
-                task(page, max_pages, href, file_w, reg=str(reg))
+            if (href != None and re.search("https://ko", href) and href not in url_list):
+                url_list.append(href)
+                task(page, max_pages, href, file_w, reg=str(reg), url_list=[])
 
 
 def get_single_article(item_url, file_w, reg_exp=None):
@@ -52,9 +53,9 @@ def spider(max_pages, url_path, path="/home/dev/wiki/", file_name='test.txt', re
     if not os.path.exists(path):
         os.makedirs(path)
     with open(''.join([path, file_name]), "w") as file_w:
-        print("# Job Start!!")
-        task(1, max_pages, url_path, file_w, reg=reg_exp)
-        print("# Job Done!!")
+        print("# Crawler Job Start!!")
+        task(1, max_pages, url_path, file_w, reg=reg_exp, url_list=[])
+        print("# Crawler Job Done!!")
 
 
 def save_as_csv(data):

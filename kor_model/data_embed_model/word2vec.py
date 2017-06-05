@@ -1,31 +1,36 @@
 from gensim.models import word2vec
+from kor_model.data_embed_model.data_utils import write_vocab
+import os
+import numpy as np
 
-# Set FastText home to the path to the FastText executable
-ft_home = '/home/dev/fastText/fasttext'
+def train_w2v(config) :
+    """
+    train word2vec model
+    :param train_file:
+    :return:
+    """
+    try :
+        print("word2vec train start")
+        update_flag = False
+        model = word2vec.Word2Vec(size=300 , window=5, min_count=1, workers=4)
 
-# Set file names for train and test data
-train_file = '/home/dev/wiki/pos.txt'
+        with open(config.pos_path) as f :
+            for line in f.readlines() :
+                if (update_flag == False):
+                    model.build_vocab([line.split(' ')], update=False)
+                    update_flag = True
+                else:
+                    model.build_vocab([line.split(' ')], update=True)
 
-update_flag = False
+        with open(config.pos_path) as f:
+            for line in f.readlines():
+                model.train(line.split(' '))
 
-model = word2vec.Word2Vec(size=300 , window=5, min_count=1, workers=4)
+        os.makedirs(config.embedding_model_path, exist_ok=True)
+        model.save(''.join([config.embedding_model_path, '/' , 'model']))
+        return model
 
-with open(train_file) as f :
-    for line in f.readlines() :
-        if (update_flag == False):
-            model.build_vocab(line.split(' '), update=False)
-            update_flag = True
-        else:
-            model.build_vocab(line.split(' '), update=True)
-
-with open(train_file) as f:
-    for line in f.readlines():
-        model.train(line.split(' '))
-
-#FastText.load_word2vec_format('/home/dev/wiki.ko.vec')
-#model = FastText.train(ft_home, train_file, min_count=1)
-
-print(model)
-
-result = model.most_similar(positive=['김승우'])
-print(result)
+    except Exception as e :
+        print (Exception("error on train w2v : {0}".format(e)))
+    finally:
+        print("word2vec train done")
