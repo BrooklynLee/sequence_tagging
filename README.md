@@ -1,4 +1,4 @@
-# BI-LSTM CRF 한글 테스트
+# 한글 NER 테스트 (BI-LSTM CRF , Attention Seq2Seq)
 - glove vector lib download needed. 
 - (locate txt file under data/glove.6B/)
 - Data file [link](http://nlp.stanford.edu/data/glove.6B.zip) 
