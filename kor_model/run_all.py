@@ -9,15 +9,23 @@ from kor_model.data_embed_model.data_utils import CoNLLDataset
 import os
 
 
-# (1) get some korean texts for embedding models by using WebCrawler
-crawler.spider(1, 'https://ko.wikipedia.org/wiki/',
-               path=config.crawler_path ,
-               file_name= config.crawler_file,
-               reg_exp='[가-히\s]{1,}')
+data_type = 'local'
 
-# (2) Meacb Tockenizer Preprocess Text
-mecab.tockenizer(config.crawler_path + config.crawler_file,
-                 config.pos_path)
+if(data_type == 'crawler') :
+    # (1) get some korean texts for embedding models by using WebCrawler
+    crawler.spider(1, 'https://ko.wikipedia.org/wiki/',
+                   path=config.crawler_path ,
+                   file_name= config.crawler_file,
+                   reg_exp='[가-히\s]{1,}')
+
+    # (2) Meacb Tockenizer Preprocess Text
+    mecab.tockenizer(config.crawler_path + config.crawler_file,
+                     config.pos_path)
+
+else :
+    # (2) Meacb Tockenizer Preprocess Text
+    mecab.tockenizer(config.train_filename,
+                     config.pos_path)
 
 # (2) build data (Mecab, Embedding, Char Embedding)
 build_data.build_data(config)
@@ -43,7 +51,7 @@ test = CoNLLDataset(config.test_filename, processing_word, processing_tag, confi
 train = CoNLLDataset(config.train_filename, processing_word, processing_tag, config.max_iter)
 
 # build model
-model = NERModel(config, embeddings, ntags=len(vocab_tags),nchars=len(vocab_chars), logger=None)
+model = NERModel(config, embeddings, ntags=len(vocab_tags),nchars=len(vocab_chars), logger=None, char_embed=char_embedding)
 model.build()
 model.train(train, dev, vocab_tags)
 model.evaluate(test, vocab_tags)

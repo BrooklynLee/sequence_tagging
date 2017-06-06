@@ -1,12 +1,13 @@
 class config():
     dim = 300
-    dim_char = 100
+    dim_char = 120
     embedding = "facebook" #fasttext, word2vec, facebook
     embedding_model_path = "../data/w2v"
     crawler_path = "../data/crawler/"
     crawler_file = 'source.txt'
     pos_path = "../data/crawler/pos.txt"
     trimmed_filename = "../data/processed/kor/w2v.trimmed.npz"
+    charembed_filename = "../data/processed/kor/char.trimmed.npz"
     words_filename = "../data/processed/kor/words.txt"
     tags_filename = "../data/processed/kor/tags.txt"
     chars_filename = "../data/processed/kor/chars.txt"
@@ -16,9 +17,9 @@ class config():
     max_iter = None
     lowercase = True
     train_embeddings = False
-    nepochs = 20
+    nepochs = 50
     dropout = 0.5
-    batch_size = 20
+    batch_size = 50
     lr = 0.001
     lr_decay = 0.9
     nepoch_no_imprv = 3

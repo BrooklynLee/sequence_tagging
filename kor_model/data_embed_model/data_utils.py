@@ -2,6 +2,8 @@
 from hanja import hangul
 import numpy as np
 import re
+import os
+from kor_model.config import config
 
 # result = get_onehot_vector("가- -2")
 # print(result)
@@ -79,29 +81,35 @@ def get_onehot_vector(sent) :
     convert sentecne to vector
     :return: list
     """
-    return_vector = []
-    embeddings = np.zeros([30])
-    idx = ['0','1','2','3','4','5','6','7','8','9','-', ' ']
-    num_reg = re.compile("[0-9- ]")
+    try :
+        return_vector = []
+        embeddings = np.zeros([30])
+        idx = ['0','1','2','3','4','5','6','7','8','9','-', ' ']
+        num_reg = re.compile("[0-9- ]")
 
-    if(type(sent) != type('str')) :
-        raise Exception ("input must be str")
+        if(type(sent) not in [type('str'), type([])]) :
+            raise Exception ("input must be str")
 
-    for char in sent :
-        vector_a = np.copy(embeddings)
-        vector_b = np.copy(embeddings)
-        vector_c = np.copy(embeddings)
-        vector_d = np.copy(embeddings)
+        if(type(sent) == type([])):
+            sent = sent[0]
 
-        if (num_reg.match(char) == None):
-            anl = hangul.separate(char)
-            vector_a[anl[0] if anl[0] > 0 else 0 ] = 1
-            vector_b[anl[1] if anl[1] > 0 else 0 ] = 1
-            vector_c[anl[2] if anl[2] > 0 else 0 ] = 1
-        elif (num_reg.match(char)) :
-            vector_d[idx.index(char)] = 1
-        return_vector.append(np.append(vector_a ,[vector_b ,vector_c, vector_d]))
-    return return_vector
+        for char in sent :
+            vector_a = np.copy(embeddings)
+            vector_b = np.copy(embeddings)
+            vector_c = np.copy(embeddings)
+            vector_d = np.copy(embeddings)
+
+            if (num_reg.match(char) == None and hangul.is_hangul(char)):
+                anl = hangul.separate(char)
+                vector_a[anl[0] if anl[0] > 0 else 0 ] = 1
+                vector_b[anl[1] if anl[1] > 0 else 0 ] = 1
+                vector_c[anl[2] if anl[2] > 0 else 0 ] = 1
+            elif (num_reg.match(char)) :
+                vector_d[idx.index(char)] = 1
+            return_vector.append(np.append(vector_a ,[vector_b ,vector_c, vector_d]))
+        return np.array(return_vector)
+    except Exception as e :
+        print ("error on get_onehot_vector : {0}".format(e))
 
 def get_onehot_word(vec_list) :
     """
@@ -123,6 +131,28 @@ def get_onehot_word(vec_list) :
                                               np.argmax(anl[1]),
                                               np.argmax(anl[2])))
     return return_vector
+
+def write_char_embedding(vocab, trimmed_filename):
+    """
+    Writes a vocab to a file
+
+    Args:
+        vocab: iterable that yields word
+        filename: path to vocab file
+    Returns:
+        write a word per line
+    """
+    try :
+        print ("Writing vocab...")
+        embeddings = np.zeros([len(vocab), 120])
+        if(type(vocab) == type(set())) :
+            vocab = list(vocab)
+        for i, word in enumerate(vocab):
+            embeddings[vocab.index(word)] = np.array(get_onehot_vector(word))[0]
+        np.savetxt(trimmed_filename,  embeddings)
+        print ("- done. {} tokens".format(len(vocab)))
+    except Exception as e :
+        print("error on write_char_embedding : {0}".format(e))
 
 def write_vocab(vocab, filename):
     """

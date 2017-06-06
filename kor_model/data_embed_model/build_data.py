@@ -25,6 +25,8 @@ def build_data(config):
     # vocab.add(data_utils.NUM)
 
     vocab_chars = data_utils.get_char_vocab(train)
+
+    data_utils.write_char_embedding(vocab_chars, config.charembed_filename)
     data_utils.write_vocab(vocab_chars, config.chars_filename)
     data_utils.write_vocab(vocab, config.words_filename)
     data_utils.write_vocab(vocab_tags, config.tags_filename)

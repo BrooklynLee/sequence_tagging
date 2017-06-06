@@ -1,6 +1,6 @@
 TI
-PS
-DT
 OG
-LC
+PS
 OO
+LC
+DT

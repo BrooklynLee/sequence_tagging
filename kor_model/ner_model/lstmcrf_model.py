@@ -7,7 +7,7 @@ from kor_model.general_utils import Progbar
 
 
 class NERModel(object):
-    def __init__(self, config, embeddings, ntags, nchars=None, logger=None):
+    def __init__(self, config, embeddings, ntags, nchars=None, logger=None, char_embed=None):
         """
         Args:
             config: class with hyper parameters
@@ -19,6 +19,7 @@ class NERModel(object):
         self.embeddings = embeddings
         self.nchars = nchars
         self.ntags = ntags
+        self.char_embed = char_embed
 
         if logger is None:
             logger = logging.getLogger('logger')
@@ -115,11 +116,18 @@ class NERModel(object):
 
         with tf.variable_scope("chars"):
             if self.config.chars:
-                # get embeddings matrix
-                _char_embeddings = tf.get_variable(name="_char_embeddings", dtype=tf.float32,
-                    shape=[self.nchars, self.config.dim_char])
-                char_embeddings = tf.nn.embedding_lookup(_char_embeddings, self.char_ids,
-                    name="char_embeddings")
+
+                if (self.char_embed is not None):
+                    _char_embeddings = tf.Variable(self.char_embed, name="_char_embeddings", dtype=tf.float32,
+                                                   trainable=self.config.train_embeddings)
+                    char_embeddings = tf.nn.embedding_lookup(_char_embeddings, self.char_ids,
+                                                             name="char_embeddings")
+                else :
+                    # get embeddings matrix
+                    _char_embeddings = tf.get_variable(name="_char_embeddings", dtype=tf.float32,
+                        shape=[self.nchars, self.config.dim_char])
+                    char_embeddings = tf.nn.embedding_lookup(_char_embeddings, self.char_ids,
+                        name="char_embeddings")
                 # put the time dimension on axis=1
                 s = tf.shape(char_embeddings)
                 char_embeddings = tf.reshape(char_embeddings, shape=[-1, s[-2], self.config.dim_char])
