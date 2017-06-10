@@ -8,10 +8,7 @@ from kor_model.data_embed_model import data_utils
 from kor_model.data_embed_model.data_utils import CoNLLDataset
 import os
 
-
-data_type = 'local'
-
-if(data_type == 'crawler') :
+if(config.use_crawler == True) :
     # (1) get some korean texts for embedding models by using WebCrawler
     crawler.spider(1, 'https://ko.wikipedia.org/wiki/',
                    path=config.crawler_path ,
@@ -33,6 +30,7 @@ build_data.build_data(config)
 # (3) train NER Model (1.bilstm-crf, 2.attention)
 # get data
 embeddings = data_utils.get_trimmed_glove_vectors(config.trimmed_filename)
+char_embedding = data_utils.get_trimmed_glove_vectors(config.charembed_filename)
 vocab_words = data_utils.load_vocab(config.words_filename)
 vocab_tags = data_utils.load_vocab(config.tags_filename)
 vocab_chars = data_utils.load_vocab(config.chars_filename)
@@ -55,4 +53,4 @@ model = NERModel(config, embeddings, ntags=len(vocab_tags),nchars=len(vocab_char
 model.build()
 model.train(train, dev, vocab_tags)
 model.evaluate(test, vocab_tags)
-model.predict(vocab_tags, processing_word, "전남")
+model.predict(vocab_tags, processing_word, "김승우 사진 찾아줘")

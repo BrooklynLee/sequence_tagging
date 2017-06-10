@@ -1,6 +1,5 @@
 class config():
-    dim = 300
-    dim_char = 120
+
     embedding = "facebook" #fasttext, word2vec, facebook
     embedding_model_path = "../data/w2v"
     crawler_path = "../data/crawler/"
@@ -14,6 +13,8 @@ class config():
     dev_filename = "../data/coNLL/kor/kor.testa.iob"
     test_filename = "../data/coNLL/kor/kor.testb.iob"
     train_filename = "../data/coNLL/kor/kor.train.iob"
+    dim = 300
+    dim_char = 120
     max_iter = None
     lowercase = True
     train_embeddings = False
@@ -23,10 +24,10 @@ class config():
     lr = 0.001
     lr_decay = 0.9
     nepoch_no_imprv = 3
-
+    use_crawler = False
     hidden_size = 300
     char_hidden_size = 100
-    crf = False # size one is not allowed
+    crf = True # size one is not allowed
     chars = True # if char embedding, training is 3.5x slower
     output_path = "results/crf/"
     model_output = output_path + "model.weights/"

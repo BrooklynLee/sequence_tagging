@@ -34,10 +34,4 @@ model = NERModel(config, embeddings, ntags=len(vocab_tags),nchars=len(vocab_char
 model.build()
 
 # (5) predict
-model.predict(vocab_tags, processing_word, "전남")
-model.predict(vocab_tags, processing_word, "환경부")
-model.predict(vocab_tags, processing_word, "한화건설")
-model.predict(vocab_tags, processing_word, "한화증권")
-model.predict(vocab_tags, processing_word, "김승우")
-model.predict(vocab_tags, processing_word, "김수상")
-model.predict(vocab_tags, processing_word, "06시30분")
+model.predict(vocab_tags, processing_word, "김승우 사진 찾아줘")

@@ -12,7 +12,7 @@ from kor_model.config import config
 
 UNK = "$UNK$"
 NUM = "$NUM$"
-NONE = "OO"
+NONE = "O"
 
 class CoNLLDataset(object):
     """
@@ -35,14 +35,13 @@ class CoNLLDataset(object):
         self.all_line = all_line
 
     def __iter__(self):
-        try :
+        try:
             niter = 0
             with open(self.filename) as f:
                 words, tags = [], []
                 for line in f:
                     line = line.strip()
-
-                    if (len(line) == 0 or line.startswith("-DOCSTART-") or (self.all_line==True and len(words) > 0)):
+                    if (len(line) == 0 or line.startswith("-DOCSTART-")):
                         if len(words) != 0:
                             niter += 1
                             if self.max_iter is not None and niter > self.max_iter:
@@ -50,17 +49,13 @@ class CoNLLDataset(object):
                             yield words, tags
                             words, tags = [], []
                     else:
-                        # yield words, tags
-                        # words, tags = [], []
-                        if(self.processing_word) :
-                            words += [self.processing_word(line[0:len(line)-4])]
-                        else  :
-                            words += [line[0:len(line) - 4]]
-                        if(self.processing_tag) :
-                            tags += [self.processing_tag(line[len(line)-2:len(line)])]
-                        else :
-                            tags += [line[len(line) - 2:len(line)]]
-
+                        word, tag = line.split(' ')
+                        if self.processing_word is not None:
+                            word = self.processing_word(word)
+                        if self.processing_tag is not None:
+                            tag = self.processing_tag(tag)
+                        words += [word]
+                        tags += [tag]
         except Exception as e :
             raise Exception (e)
 
