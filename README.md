@@ -1,16 +1,16 @@
 # 한글 NER 테스트 (BI-LSTM CRF , Attention Seq2Seq)
-- glove vector lib download needed.
-- (locate txt file under data/glove.6B/)
-- Data file [link](http://nlp.stanford.edu/data/glove.6B.zip)
+- glove vector lib download needed. <br>
+  . locate txt file under data/glove.6B/
+- glove vector Data file [(download)](http://nlp.stanford.edu/data/glove.6B.zip)
 ```
 wget http://nlp.stanford.edu/data/glove.6B.zip
 ```
 - step1 : make it work on python3.5 and tf1.1 (done)
 - step2 : test korean with mecab tockenizer (done)
 - step3 : develop whole process on hoyai project with rest webservice <br>
- . API Client code : [link](https://github.com/TensorMSA/tensormsa_jupyter/blob/master/chap20_hoayi_api_guide/04.nlp/bilstmcrf_txt.ipynb)<br>
- . Server Project : [link](https://github.com/TensorMSA/tensormsa)<br>
- . Docker Set up : [link](https://github.com/TensorMSA/tensormsa_docker)<br>
+ . API Client [jupyter code here](https://github.com/TensorMSA/tensormsa_jupyter/blob/master/chap20_hoayi_api_guide/04.nlp/bilstmcrf_txt.ipynb)<br>
+ . reset server [github link](https://github.com/TensorMSA/tensormsa)<br>
+ . start service with [docker](https://github.com/TensorMSA/tensormsa_docker)<br>
 
 # Blog explaining Theory
 Check original projects [blog post](https://guillaumegenthial.github.io/sequence-tagging-with-tensorflow.html)
@@ -23,7 +23,7 @@ Check original projects [blog post](https://guillaumegenthial.github.io/sequence
  - Attention seq2seq for NER : working on it (~ing)
 
 # Korean NER Test Result
- - Train Data Example: [link](https://github.com/shinu89/KoNER/blob/master/data/gazette).
+ - Train Data Example: [link](https://github.com/shinu89/KoNER/blob/master/data/gazette) <br>
    . you have to preprocess data first before use it
  - Word Level Test
 ```
