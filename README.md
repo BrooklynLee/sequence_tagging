@@ -7,7 +7,7 @@ wget http://nlp.stanford.edu/data/glove.6B.zip
 ```
 - step1 : make it work on python3.5 and tf1.1 (done)
 - step2 : test korean with mecab tockenizer (done)
-- step3 : develop whole process on hoyai project with rest webservice (done) <br>
+- step3 : develop whole process on hoyai project with rest webservice <br>
  . API Client code : [link](https://github.com/TensorMSA/tensormsa_jupyter/blob/master/chap20_hoayi_api_guide/04.nlp/bilstmcrf_txt.ipynb)<br>
  . Server Project : [link](https://github.com/TensorMSA/tensormsa)<br>
  . Docker Set up : [link](https://github.com/TensorMSA/tensormsa_docker)<br>
